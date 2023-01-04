@@ -13,15 +13,15 @@ function App() {
 
       const res = await fetch(`${baseURL}/api/users`)
       console.log(res.status)
-      const text = await res.text();
+      const text = await res.json();
       console.log(text);
       setServerMessage(text);
     })();
-  });
+  }, []);
 
   return <>
     <h1>Hello World</h1>
-    { serverMessage && <p>{serverMessage}</p> }
+    { serverMessage && <p>{serverMessage.users[0].email}</p> }
   </>
 }
 

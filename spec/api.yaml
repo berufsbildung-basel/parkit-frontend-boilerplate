@@ -33,11 +33,6 @@ paths:
           description: Users found
           content:
             application/json:
-              example:
-                - size: 1
-                  total: 1
-                  number: 1
-
               schema:
                 $ref: '#/components/schemas/UserListResponse'
         '400':
@@ -802,7 +797,6 @@ components:
       properties:
         unavailabilityReason:
           type: string
-          required: false
           description: The optional reason for setting the parking spot unavailable
           example: LED Panel Maintenance
     ReservationCancelResponse:
