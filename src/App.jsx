@@ -11,7 +11,7 @@ function App() {
     (async () => {
       console.log('fetching');
 
-      const res = await fetch(`${baseURL}/api/test`)
+      const res = await fetch(`${baseURL}/api/users`)
       console.log(res.status)
       const text = await res.text();
       console.log(text);

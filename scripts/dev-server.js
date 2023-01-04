@@ -12,7 +12,10 @@ async function setupViteDevServer() {
     server: {
       port: 1234,
       proxy: {
-        '/api': 'http://localhost:1234/api'
+        '/api': {
+          target: 'http://localhost:1234/',
+          rewrite: (path) => path.replace(/^\/api/, ''),
+        }
       }
     },
   });
