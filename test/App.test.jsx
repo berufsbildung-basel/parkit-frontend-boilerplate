@@ -1,11 +1,11 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
-import App from '../src/App.jsx';
+import App from "../src/App.jsx";
 
-describe('Example test', () => {
-  it('Fetches content from the mock API', async () => {
-    render(<App />)
+describe("Example test", () => {
+  it("Fetches content from the mock API", async () => {
+    render(<App />);
 
-    await screen.findByText('someuser@adobe.com');
-  })
-})
+    await screen.findByText("someuser@adobe.com");
+  });
+});

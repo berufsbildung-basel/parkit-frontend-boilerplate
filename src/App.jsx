@@ -1,28 +1,30 @@
-import { useEffect, useState } from 'react';
-import { fetch } from 'cross-fetch';
+import { useEffect, useState } from "react";
+import { fetch } from "cross-fetch";
 
 // TODO make globally available
-const baseURL = 'http://localhost:1234'
+const baseURL = "http://localhost:1234";
 
 function App() {
-  const [serverMessage, setServerMessage] = useState(null)
+  const [serverMessage, setServerMessage] = useState(null);
 
   useEffect(() => {
     (async () => {
-      console.log('fetching');
+      console.log("fetching");
 
-      const res = await fetch(`${baseURL}/api/users`)
-      console.log(res.status)
+      const res = await fetch(`${baseURL}/api/users`);
+      console.log(res.status);
       const text = await res.json();
       console.log(text);
       setServerMessage(text);
     })();
   }, []);
 
-  return <>
-    <h1>Hello World</h1>
-    { serverMessage && <p>{serverMessage.users[0].email}</p> }
-  </>
+  return (
+    <>
+      <h1>Hello World</h1>
+      {serverMessage && <p>{serverMessage.users[0].email}</p>}
+    </>
+  );
 }
 
-export default App
+export default App;
