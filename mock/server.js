@@ -10,14 +10,12 @@ const api = new OpenAPIBackend({
   definition: path.join(__dirname, "..", "spec", "api.yaml"),
 });
 api.register("notFound", (c, res, ctx) => {
-  console.log("Not Found");
   return res(ctx.status(404));
 });
 api.register("notImplemented", async (c, res, ctx) => {
   const { status, mock } = api.mockResponseForOperation(
     c.operation.operationId
   );
-  console.log("Not Implemented");
   ctx.status(status);
   return res(ctx.json(mock));
 });

@@ -15,13 +15,13 @@
   },
   "servers" : [ {
     "description" : "Production server",
-    "url" : "https://api.example.com"
+    "url" : "http://localhost:1234/api"
   }, {
     "description" : "Test server",
-    "url" : "https://test-api.example.com"
+    "url" : "http://localhost:1234/api"
   }, {
     "description" : "Development server",
-    "url" : "https://dev-api.example.com"
+    "url" : "http://localhost:1234/api"
   } ],
   "paths" : {
     "/users" : {

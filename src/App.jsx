@@ -1,21 +1,20 @@
 import { useEffect, useState } from "react";
-import { fetch } from "cross-fetch";
-
-// TODO make globally available
-const baseURL = "http://localhost:1234";
+import SwaggerClient from "swagger-client";
+import spec from "../spec/api.json";
 
 function App() {
   const [serverMessage, setServerMessage] = useState(null);
 
   useEffect(() => {
     (async () => {
-      console.log("fetching");
+      // TODO provide client instance globally
+      const client = await new SwaggerClient({ spec });
 
-      const res = await fetch(`${baseURL}/api/users`);
-      console.log(res.status);
-      const text = await res.json();
-      console.log(text);
-      setServerMessage(text);
+      const response = await client.apis.users.listUsers();
+
+      if (response.ok) {
+        setServerMessage(response.body);
+      }
     })();
   }, []);
 
