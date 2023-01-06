@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, expect } from "vitest";
+import { afterAll, beforeAll, beforeEach, afterEach, expect } from "vitest";
 import { setupMockServer } from "../mock/server.js";
 import matchers from "@testing-library/jest-dom/matchers";
 import { cleanup } from "@testing-library/react";
@@ -11,7 +11,14 @@ beforeAll(() => {
   server = setupMockServer();
 });
 
+beforeEach((context) => {
+  context.server = server;
+});
+
+afterEach(() => {
+  cleanup();
+});
+
 afterAll(() => {
   server.close();
-  cleanup();
 });

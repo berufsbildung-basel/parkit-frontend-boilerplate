@@ -24,7 +24,6 @@ export function setupMockServer() {
   console.log("using mock server");
   const mockServer = setupServer(
     rest.all("http://localhost:1234/*", async (req, res, ctx) => {
-      console.log(`Handling ${req.url.pathname}`);
       return api.handleRequest(
         {
           path: req.url.pathname.replace(/^\/api/, ""),
