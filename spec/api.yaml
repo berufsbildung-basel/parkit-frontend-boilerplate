@@ -24,8 +24,8 @@ paths:
       tags:
         - users
       parameters:
-        - $ref: '#/components/parameters/OffsetQuery'
-        - $ref: '#/components/parameters/LimitQuery'
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/PageSizeQuery'
         - $ref: '#/components/parameters/SortByQuery'
         - $ref: '#/components/parameters/OrderQuery'
       responses:
@@ -95,6 +95,38 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           # Only an administrative user or the user itself can read the user
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /users/{id}/change_role:
+    put:
+      summary: Change the role of a user
+      operationId: changeUserRole
+      tags:
+        - users
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserChangeRoleRequest'
+      responses:
+        '200':
+          description: User role changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          # Only an administrative user can change a user role
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
@@ -189,8 +221,8 @@ paths:
       tags:
         - parking-spots
       parameters:
-        - $ref: '#/components/parameters/OffsetQuery'
-        - $ref: '#/components/parameters/LimitQuery'
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/PageSizeQuery'
         - $ref: '#/components/parameters/SortByQuery'
         - $ref: '#/components/parameters/OrderQuery'
       responses:
@@ -212,16 +244,15 @@ paths:
 
   /parking-spots/availability:
     get:
-      summary: Returns available parking spots for a given date, user and vehicle
-      operationId: availability
+      summary: Returns available parking spots for a given date, vehicle and full-/half-day filter. The vehicle owner is considered in the check.
+      operationId: checkParkingSpotAvailability
       tags:
         - parking-spots
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AvailabilityCheckRequest'
+      parameters:
+        - $ref: '#/components/parameters/AvailabilityCheckDate'
+        - $ref: '#/components/parameters/AvailabilityCheckVehicleId'
+        - $ref: '#/components/parameters/AvailabilityCheckHalfDay'
+        - $ref: '#/components/parameters/AvailabilityCheckAm'
       responses:
         '200':
           description: Availability retrieved
@@ -234,20 +265,20 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
-          # If the user:
+          # If the user (= the vehicle owner):
           # - will exceed 3 reservations per week
           # - already has a reservation today
           # - requests a date more than two weeks into the future
           $ref: '#/components/responses/Forbidden'
         '404':
-          # If either the user or vehicle cannot be found
+          # If the given vehicle cannot be found
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/ServerError'
   /parking-spots/today:
     get:
       summary: List parking spots and any reservations + vehicles on today's date
-      operationId: parkingSpotsToday
+      operationId: listParkingSpotsToday
       tags:
         - parking-spots
       responses:
@@ -318,13 +349,32 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
-          # Only an administrative user or the owner can read a parking spot
+          # Only an administrative user can read a parking spot
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/ServerError'
-  /parking-spots/{id}/setUnavailable:
+    delete:
+      summary: Remove a parking spot
+      operationId: removeParkingSpot
+      tags:
+        - parking-spots
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          # Only an administrative user can remove a parking spot
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /parking-spots/{id}/set_unavailable:
     put:
       summary: Set a parking spot as unavailable (not usable for reservations). Automatically clears existing reservations.
       operationId: setParkingSpotUnavailable
@@ -356,7 +406,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/ServerError'
-  /parking-spots/{id}/setAvailable:
+  /parking-spots/{id}/set_available:
     put:
       summary: Set a parking spot as available (usable for reservations).
       operationId: setParkingSpotAvailable
@@ -393,7 +443,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ReservationWithVehicle'
+              $ref: '#/components/schemas/ReservationCreateRequest'
       responses:
         '201':
           description: Reservation created successfully
@@ -420,8 +470,8 @@ paths:
       tags:
         - reservations
       parameters:
-        - $ref: '#/components/parameters/OffsetQuery'
-        - $ref: '#/components/parameters/LimitQuery'
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/PageSizeQuery'
         - $ref: '#/components/parameters/SortByQuery'
         - $ref: '#/components/parameters/OrderQuery'
       responses:
@@ -558,8 +608,8 @@ paths:
       tags:
         - vehicles
       parameters:
-        - $ref: '#/components/parameters/OffsetQuery'
-        - $ref: '#/components/parameters/LimitQuery'
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/PageSizeQuery'
         - $ref: '#/components/parameters/SortByQuery'
         - $ref: '#/components/parameters/OrderQuery'
       responses:
@@ -633,8 +683,63 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/ServerError'
+    delete:
+      summary: Remove a vehicle
+      operationId: removeVehicle
+      tags:
+        - vehicles
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          # Only an administrative user or the owner can remove a vehicle
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
 components:
   parameters:
+    AvailabilityCheckDate:
+      name: date
+      in: query
+      description: The date for which to check available parking spots
+      required: true
+      schema:
+        type: string
+        format: date
+      example: 2022-12-24
+    AvailabilityCheckVehicleId:
+      name: vehicle_id
+      in: query
+      description: Identifies the vehicle and owner for which a reservation is intended.
+      required: true
+      schema:
+        type: string
+        format: uuid
+      example: ccf8d1c6-f927-4e51-8de4-4d4a4f4be623
+    AvailabilityCheckHalfDay:
+      name: half_day
+      in: query
+      description: Whether availability should be checked for a half-day reservation (false for full-day)
+      required: false
+      schema:
+        type: boolean
+        default: false
+      example: true
+    AvailabilityCheckAm:
+      name: am
+      in: query
+      description: If halfDay is true, whether a reservation is intended ante- or post-meridian (morning or afternoon)
+      required: false
+      schema:
+        type: boolean
+        default: false
+      example: false
     Id:
       name: id
       in: path
@@ -643,17 +748,17 @@ components:
       schema:
         type: string
       example: ccf8d1c6-f927-4e51-8de4-4d4a4f4be623
-    OffsetQuery:
-      name: offset
+    PageQuery:
+      name: page
       in: query
-      description: 'Offset for pagination. When provided, server skips first n elements.'
+      description: 'Requested page. Skips to page according to page_size.'
       required: false
       schema:
         type: number
         minimum: 0
         default: 0
-    LimitQuery:
-      name: limit
+    PageSizeQuery:
+      name: page_size
       in: query
       description: 'Specifies the page size for pagination.'
       required: false
@@ -709,8 +814,8 @@ components:
       description: No Content
       content:
         application/json:
-          schema: {}
-          example: {}
+          schema: { }
+          example: { }
     NotFound:
       description: Not found
       content:
@@ -748,26 +853,26 @@ components:
     AuditFields:
       type: object
       properties:
-        createdAt:
+        created_at:
           type: string
           format: date-time
           readOnly: true
           description: The time this object was created
           example: 2021-01-30T10:30:00Z
-        createdBy:
+        created_by:
           type: string
           format: uuid
           readOnly: true
           description: Identifies the user that created this object.
           example: ccf8d1c6-f927-4e51-8de4-4d4a4f4be623
-        modifiedAt:
+        updated_at:
           type: string
           format: date-time
           readOnly: true
           default: null
           description: The time this object was created
           example: 2021-01-30T10:30:00Z
-        modifiedBy:
+        updated_by:
           type: string
           format: uuid
           readOnly: true
@@ -775,51 +880,72 @@ components:
           description: Identifies the user that last modified this object.
           example: ccf8d1c6-f927-4e51-8de4-4d4a4f4be623
     ListResponse:
+      # json.total_count @users.total_count
+      #json.total_pages @users.total_pages
+      #json.current_page @users.current_page
+      #json.limit_per_page @users.limit_value
       type: object
       properties:
-        size:
+        limit_per_page:
           type: integer
           readOnly: true
           description: The current page size.
           example: 100
-        total:
+        total_count:
           type: integer
           readOnly: true
           description: The total number of results
           example: 1000
-        number:
+        current_page:
           type: integer
           readOnly: true
           description: The current page number
           example: 2
+        total_pages:
+          type: integer
+          readOnly: true
+          description: The total number of pages
+          example: 2
     ParkingSpotSetUnavailableRequest:
       type: object
       properties:
-        unavailabilityReason:
+        unavailability_reason:
           type: string
           description: The optional reason for setting the parking spot unavailable
           example: LED Panel Maintenance
     ReservationCancelResponse:
       type: object
       properties:
-        cancelledAt:
+        cancelled_at:
           type: string
           format: date-time
           readOnly: true
           description: The time this reservation was created
           example: 2021-01-30T10:30:00Z
-        cancelledBy:
+        cancelled_by:
           type: string
           format: uuid
           readOnly: true
           description: Identifies the user that cancelled this reservations.
           example: ccf8d1c6-f927-4e51-8de4-4d4a4f4be623
+    UserChangeRoleRequest:
+      type: object
+      required:
+        - role
+      properties:
+        role:
+          type: string
+          description: The user's role to set.
+          enum:
+            - admin
+            - user
+          example: admin
     UserUpdateRequest:
       type: object
       required:
         - preferredLanguage
       properties:
-        preferredLanguage:
+        preferred_language:
           type: string
           description: The user's preferred language to which responses and UI will be internationalized.
           enum:
@@ -827,43 +953,13 @@ components:
             - de
             - fr
           example: en
-    AvailabilityCheckRequest:
-      type: object
-      required:
-        - date
-        - userId
-        - vehicleId
-      properties:
-        date:
-          type: string
-          format: date
-          description: The date for which to check available parking spots
-          example: 2022-12-24
-        userId:
-          type: string
-          format: uuid
-          description: Identifies the user for which a reservation is intended.
-          example: ccf8d1c6-f927-4e51-8de4-4d4a4f4be623
-        vehicleId:
-          type: string
-          format: uuid
-          description: Identifies the vehicle for which a reservation is intended.
-          example: ccf8d1c6-f927-4e51-8de4-4d4a4f4be623
-        halfDay:
-          type: boolean
-          description: Whether availability should be checked for a half-day reservation (false for full-day)
-          example: true
-        am:
-          type: boolean
-          description: If halfDay is true, whether a reservation is intended ante- or post-meridian (morning or afternoon)
-          example: false
     AvailabilityResponse:
       type: object
       properties:
-        availableParkingSpots:
+        available_parking_spots:
           type: array
           items:
-            $ref: '#/components/schemas/ParkingSpotWithReservationsAndVehicles'
+            $ref: '#/components/schemas/ParkingSpot'
     ParkingSpotWithReservationsAndVehicles:
       type: object
       allOf:
@@ -889,7 +985,7 @@ components:
               description: The unique number of the parking spot as painted on its surface.
               minimum: 1
               example: 6
-            chargerAvailable:
+            charger_available:
               type: boolean
               default: false
               description: Indicates whether this parking spot is equipped with a charger for electric vehicles.
@@ -897,11 +993,13 @@ components:
             unavailable:
               type: boolean
               default: false
+              readOnly: true
               description: Indicates whether this parking spot is available for reservations or not.
               example: true
-            unavailabilityReason:
+            unavailability_reason:
               type: string
               default: null
+              readOnly: true
               description: Optionally indicates the reason for the parking spot having been set unavailable.
     ReservationWithVehicle:
       type: object
@@ -925,17 +1023,17 @@ components:
         - $ref: '#/components/schemas/AuditFields'
         - type: object
           properties:
-            parkingSpotId:
+            parking_spot_id:
               type: string
               format: uuid
               description: Identifies the parking spot reserved during the time of this reservation.
               example: ccf8d1c6-f927-4e51-8de4-4d4a4f4be623
-            userId:
+            user_id:
               type: string
               format: uuid
               description: Identifies the user that made this reservation.
               example: ccf8d1c6-f927-4e51-8de4-4d4a4f4be623
-            vehicleId:
+            vehicle_id:
               type: string
               format: uuid
               description: Identifies the vehicle (owned by the reservation user) that is intended to be on the reserved parking spot during the time of this reservation.
@@ -951,19 +1049,19 @@ components:
               format: date
               description: The date on which this reservation is effective.
               example: 2021-12-31
-            startTime:
+            start_time:
               type: string
               format: date-time
               readOnly: true
               description: The beginning time of this reservation in ISO 8601 full-time format.
               example: 2021-01-30T08:30:00Z
-            endTime:
+            end_time:
               type: string
               format: date-time
               readOnly: true
               description: The ending time of this reservation in ISO 8601 full-time format.
               example: 2021-01-30T10:30:00Z
-            halfDay:
+            half_day:
               type: boolean
               description: Indicates whether this reservation was created as a half-day or full-day reservation.
               default: false
@@ -973,20 +1071,58 @@ components:
               description: Indicates, if this reservation is a half-day reservation, whether the half day is ante- or post meridian (first, or second half of the day).
               default: null
               example: true
-            cancelledAt:
+            cancelled_at:
               type: string
               format: date-time
               readOnly: true
               default: null
               description: The time this reservation was cancelled at
               example: 2021-01-30T10:30:00Z
-            cancelledBy:
+            cancelled_by:
               type: string
               format: uuid
               readOnly: true
               default: null
               description: Identifies the user that cancelled this reservations.
               example: ccf8d1c6-f927-4e51-8de4-4d4a4f4be623
+    ReservationCreateRequest:
+      type: object
+      required:
+        - parking_spot_id
+        - user_id
+        - vehicle_id
+        - date
+      properties:
+        parking_spot_id:
+          type: string
+          format: uuid
+          description: Identifies the parking spot reserved during the time of this reservation.
+          example: ccf8d1c6-f927-4e51-8de4-4d4a4f4be623
+        user_id:
+          type: string
+          format: uuid
+          description: Identifies the user that made this reservation.
+          example: ccf8d1c6-f927-4e51-8de4-4d4a4f4be623
+        vehicle_id:
+          type: string
+          format: uuid
+          description: Identifies the vehicle (owned by the reservation user) that is intended to be on the reserved parking spot during the time of this reservation.
+          example: ccf8d1c6-f927-4e51-8de4-4d4a4f4be623
+        date:
+          type: string
+          format: date
+          description: The date on which this reservation is effective.
+          example: 2021-12-31
+        half_day:
+          type: boolean
+          description: Indicates whether this reservation was created as a half-day or full-day reservation.
+          default: false
+          example: true
+        am:
+          type: boolean
+          description: Indicates, if this reservation is a half-day reservation, whether the half day is ante- or post meridian (first, or second half of the day).
+          default: null
+          example: true
     User:
       type: object
       allOf:
@@ -994,7 +1130,7 @@ components:
         - $ref: '#/components/schemas/AuditFields'
         - type: object
           properties:
-            oktaId:
+            okta_id:
               type: string
               readOnly: true
               description: The Okta unique user ID as synced from the login session.
@@ -1009,17 +1145,17 @@ components:
               readOnly: true
               description: The email of the user as synced from the Okta login session.
               example: someuser@adobe.com
-            firstName:
+            first_name:
               type: string
               readOnly: true
               description: The first of the user as synced from the Okta login session.
               example: Jane
-            lastName:
+            last_name:
               type: string
               readOnly: true
               description: The last name of the user as synced from the Okta login session.
               example: Doe
-            preferredLanguage:
+            preferred_language:
               type: string
               description: The user's preferred language to which responses and UI will be internationalized.
               enum:
@@ -1028,7 +1164,15 @@ components:
                 - fr
               default: en
               example: en
-            userName:
+            role:
+              type: string
+              description: The user's role
+              enum:
+                - admin
+                - user
+              default: user
+              example: admin
+            username:
               type: string
               readOnly: true
               description: The username of the user as synced from the Okta login session.
@@ -1045,7 +1189,7 @@ components:
         - $ref: '#/components/schemas/AuditFields'
         - type: object
           properties:
-            userId:
+            user_id:
               type: string
               format: uuid
               description: Identifies the user that owns this vehicle.
@@ -1055,7 +1199,7 @@ components:
               default: false
               description: Indicates whether this vehicle is an electric vehicle, i.e. might benefit from a parking spot with electrical charger available.
               example: true
-            licensePlateNumber:
+            license_plate_number:
               type: string
               description: The unique and full license plate number as affixed to the vehicle.
               example: ABC123
@@ -1067,7 +1211,7 @@ components:
               type: string
               description: The name of the specific vehicle model.
               example: Focus
-            type:
+            vehicle_type:
               type: string
               description: Indicates whether this vehicle is a car or a motorcycle.
               enum:
@@ -1079,7 +1223,7 @@ components:
         - $ref: '#/components/schemas/ListResponse'
         - type: object
           properties:
-            parkingSpots:
+            parking_spots:
               type: array
               readOnly: true
               items:
