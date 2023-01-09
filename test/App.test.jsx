@@ -3,8 +3,9 @@ import { render, screen } from "@testing-library/react";
 import App from "../src/App.jsx";
 import { rest } from "msw";
 import TestRenderer from "react-test-renderer";
+import { developmentBaseUrl } from "../mock/conf.js";
 
-const baseUrl = "http://localhost:1234";
+const baseUrl = developmentBaseUrl;
 
 describe("Example test", () => {
   it("Fetches content from the mock API", async () => {

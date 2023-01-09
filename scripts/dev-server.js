@@ -2,6 +2,7 @@ import { createServer } from "vite";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
 import { setupMockServer } from "../mock/server.js";
+import { developmentBaseUrl } from "../mock/conf.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -13,7 +14,7 @@ async function setupViteDevServer() {
       port: 1234,
       proxy: {
         "/api": {
-          target: "http://localhost:1234/",
+          target: developmentBaseUrl,
           rewrite: (path) => path.replace(/^\/api/, ""),
         },
       },

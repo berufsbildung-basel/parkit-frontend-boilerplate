@@ -1,19 +1,27 @@
 import { useEffect, useState } from "react";
 import SwaggerClient from "swagger-client";
-import spec from "../spec/api.json";
+import spec from "@berufsbildung-basel/parkit-spec/api.yml";
+import { developmentBaseUrl } from "../mock/conf.js";
 
 function App() {
   const [serverMessage, setServerMessage] = useState(null);
 
   useEffect(() => {
     (async () => {
-      // TODO provide client instance globally
-      const client = await new SwaggerClient({ spec });
+      // TODO provide client instance globally, and set correct servers in prod
+      const client = await new SwaggerClient({
+        spec: {
+          ...spec,
+          servers: [
+            { url: `${developmentBaseUrl}/api`, description: "Test server" },
+          ],
+        },
+      });
 
       client.apis.users
         .listUsers()
         .then((response) => {
-          if (response.ok) {
+          if (response?.ok) {
             setServerMessage(response.body.users[0].email);
           }
         })
