@@ -8,4 +8,4 @@ To do this, create an access token under the GitHub Developer settings in your p
 
 `npm login --scope @berufsbildung-basel --registry=https://npm.pkg.github.com`
 
-Enter your username, token as password and email.
+When promted, enter your username. For the password field, enter the access token you created above, not the password. Enter your email when promted.
