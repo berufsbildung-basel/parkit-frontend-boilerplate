@@ -8,13 +8,22 @@ function App() {
 
   useEffect(() => {
     (async () => {
-      // TODO provide client instance globally, and set correct servers in prod
+      // TODO provide client instance globally
       const client = await new SwaggerClient({
         spec: {
           ...spec,
           servers: [
             { url: `${developmentBaseUrl}/api`, description: "Test server" },
           ],
+        },
+        requestInterceptor: (request) => {
+          if (window.localStorage.getItem("x-test-response-code")) {
+            request.headers["x-test-response-code"] =
+              window.localStorage.getItem("x-test-response-code");
+            request.headers["x-test-response-text"] =
+              window.localStorage.getItem("x-test-response-text");
+          }
+          return request;
         },
       });
 

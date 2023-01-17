@@ -21,6 +21,13 @@ api.register("notFound", (c, res, ctx) => {
   return res(ctx.status(404));
 });
 api.register("notImplemented", async (c, res, ctx) => {
+  const mockStatusCode = c.request.headers["x-test-response-code"];
+  const mockStatusText = c.request.headers["x-test-response-text"];
+
+  if (mockStatusCode) {
+    return res(ctx.status(mockStatusCode, mockStatusText));
+  }
+
   const { status, mock } = api.mockResponseForOperation(
     c.operation.operationId
   );
@@ -38,7 +45,7 @@ export function setupMockServer() {
           query: req.url.search,
           method: req.method,
           body: req.bodyUsed ? await req.json() : null,
-          headers: { ...req.headers.raw },
+          headers: { ...req.headers.raw() },
         },
         res,
         ctx
