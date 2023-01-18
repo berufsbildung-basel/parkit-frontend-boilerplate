@@ -17,9 +17,17 @@ const api = new OpenAPIBackend({
     "api.yml"
   ),
 });
+
 api.register("notFound", (c, res, ctx) => {
   return res(ctx.status(404));
 });
+
+function sendMockResponse(operationId, res, ctx) {
+  const { status, mock } = api.mockResponseForOperation(operationId);
+  ctx.status(status);
+  return res(ctx.json(mock));
+}
+
 api.register("notImplemented", async (c, res, ctx) => {
   const mockStatusCode = c.request.headers["x-test-response-code"];
   const mockStatusText = c.request.headers["x-test-response-text"];
@@ -28,12 +36,9 @@ api.register("notImplemented", async (c, res, ctx) => {
     return res(ctx.status(mockStatusCode, mockStatusText));
   }
 
-  const { status, mock } = api.mockResponseForOperation(
-    c.operation.operationId
-  );
-  ctx.status(status);
-  return res(ctx.json(mock));
+  return sendMockResponse(c.operation.operationId, res, ctx);
 });
+
 api.register("validationFail", (c, res, ctx) => {
   ctx.text(c.validation.errors.join(", "));
   return res(
@@ -42,6 +47,28 @@ api.register("validationFail", (c, res, ctx) => {
       c.validation.errors.map((e) => JSON.stringify(e)).join(", ")
     )
   );
+});
+
+api.registerSecurityHandler("BasicAuth", (c) => {
+  return (
+    c.request.headers["authorization"] ===
+    `Basic ${new Buffer("test@adobe.com:testPassword").toString("base64")}`
+  );
+});
+
+api.register("unauthorizedHandler", (c, res, ctx) => {
+  return res(ctx.status(401, "unauthorized"));
+});
+
+api.register({
+  listReservations: (c, res, ctx) => {
+    if (c.request.headers["x-test-empty-response"]) {
+      ctx.status(200);
+      return res(ctx.json([]));
+    } else {
+      return sendMockResponse(c.operation.operationId, res, ctx);
+    }
+  },
 });
 
 export function setupMockServer() {

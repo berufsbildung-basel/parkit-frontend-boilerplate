@@ -17,12 +17,14 @@ function App() {
           ],
         },
         requestInterceptor: (request) => {
-          if (window.localStorage.getItem("x-test-response-code")) {
-            request.headers["x-test-response-code"] =
-              window.localStorage.getItem("x-test-response-code");
-            request.headers["x-test-response-text"] =
-              window.localStorage.getItem("x-test-response-text");
-          }
+          Object.keys(localStorage).forEach((key) => {
+            if (key.startsWith("x-test-")) {
+              request.headers[key] = localStorage.getItem(key);
+            }
+          });
+          request.headers["authorization"] = `Basic ${btoa(
+            "test@adobe.com:testPassword"
+          )}`;
           return request;
         },
       });
@@ -31,12 +33,12 @@ function App() {
         .listUsers()
         .then((response) => {
           if (response?.ok) {
-            setServerMessage(response.body.users[0].email);
+            setServerMessage(response.body?.users?.[0].email ?? "No results");
           }
         })
         .catch((e) => {
           setServerMessage(
-            `An error occurred: ${e.statusCode} - ${e.response.statusText}`
+            `An error occurred: ${e.statusCode} - ${e.response?.statusText}`
           );
         });
     })();

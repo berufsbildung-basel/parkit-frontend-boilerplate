@@ -47,7 +47,9 @@ describe("Example test", () => {
         ],
       },
       requestInterceptor: (request) => {
-        console.log(request);
+        request.headers["authorization"] = `Basic ${btoa(
+          "test@adobe.com:testPassword"
+        )}`;
         return request;
       },
     });
@@ -65,8 +67,6 @@ describe("Example test", () => {
           },
         }
       )
-      .then((response) => {
-        console.log(response);
-      });
+      .then((response) => {});
   });
 });
