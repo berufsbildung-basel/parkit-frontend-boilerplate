@@ -4,6 +4,8 @@ import App from "../src/App.jsx";
 import { rest } from "msw";
 import TestRenderer from "react-test-renderer";
 import { developmentBaseUrl } from "../mock/conf.js";
+import SwaggerClient from "swagger-client";
+import spec from "@berufsbildung-basel/parkit-spec/api.yml";
 
 const baseUrl = developmentBaseUrl;
 
@@ -34,5 +36,37 @@ describe("Example test", () => {
     });
 
     expect(app.toJSON()).toMatchSnapshot();
+  });
+
+  it("Example POST request", async () => {
+    const client = await new SwaggerClient({
+      spec: {
+        ...spec,
+        servers: [
+          { url: `${developmentBaseUrl}/api`, description: "Test server" },
+        ],
+      },
+      requestInterceptor: (request) => {
+        console.log(request);
+        return request;
+      },
+    });
+
+    client.apis.vehicles
+      .createVehicle(
+        {},
+        {
+          requestBody: {
+            license_plate_number: "BL12354",
+            make: "Tesla",
+            model: "Model S",
+            vehicle_type: "car",
+            ev: true,
+          },
+        }
+      )
+      .then((response) => {
+        console.log(response);
+      });
   });
 });

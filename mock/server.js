@@ -34,18 +34,31 @@ api.register("notImplemented", async (c, res, ctx) => {
   ctx.status(status);
   return res(ctx.json(mock));
 });
+api.register("validationFail", (c, res, ctx) => {
+  ctx.text(c.validation.errors.join(", "));
+  return res(
+    ctx.status(
+      400,
+      c.validation.errors.map((e) => JSON.stringify(e)).join(", ")
+    )
+  );
+});
 
 export function setupMockServer() {
   console.log("using mock server");
   const mockServer = setupServer(
     rest.all(`${developmentBaseUrl}/*`, async (req, res, ctx) => {
+      const rawHeaders = req.headers.raw();
       return api.handleRequest(
         {
           path: req.url.pathname.replace(/^\/api/, ""),
           query: req.url.search,
           method: req.method,
-          body: req.bodyUsed ? await req.json() : null,
-          headers: { ...req.headers.raw() },
+          body:
+            rawHeaders["content-type"] === "application/json"
+              ? await req.json()
+              : null,
+          headers: rawHeaders,
         },
         res,
         ctx
