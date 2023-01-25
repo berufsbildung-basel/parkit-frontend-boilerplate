@@ -1,0 +1,12 @@
+// Vitest Snapshot v1
+
+exports[`Example test > Example Snapshot Test 1`] = `
+[
+  <h1>
+    Hello World
+  </h1>,
+  <p>
+    someuser@adobe.com
+  </p>,
+]
+`;
